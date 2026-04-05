@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_NAME: grok2api-rs
-      TARGET: x86_64-unknown-freebsd
       PACKAGE_NAME: grok2api-rs-freebsd-amd64
     steps:
       - name: Checkout source repository
@@ -21,18 +20,29 @@ jobs:
           ref: main
           fetch-depth: 1
 
-      - name: Build binary
-        uses: houseabsolute/actions-rust-cross@v1
+      - name: Build binary in FreeBSD VM
+        uses: vmactions/freebsd-vm@v1
         with:
-          command: build
-          target: ${{ env.TARGET }}
-          args: "--locked --release"
+          release: "14.4"
+          usesh: true
+          envs: APP_NAME
+          prepare: |
+            pkg update
+            pkg install -y cmake git llvm ninja perl5 rust
+          run: |
+            set -euo pipefail
+            export LIBCLANG_PATH="$(llvm-config --libdir)"
+            export CMAKE_GENERATOR=Ninja
+            rustc --version
+            cargo --version
+            freebsd-version
+            cargo build --locked --release
 
       - name: Prepare package
         run: |
           set -euo pipefail
           mkdir -p "dist/${PACKAGE_NAME}/data"
-          install -m 755 "target/${TARGET}/release/${APP_NAME}" "dist/${PACKAGE_NAME}/${APP_NAME}"
+          install -m 755 "target/release/${APP_NAME}" "dist/${PACKAGE_NAME}/${APP_NAME}"
           install -m 644 config.defaults.toml "dist/${PACKAGE_NAME}/config.defaults.toml"
           install -m 644 data/token.json.example "dist/${PACKAGE_NAME}/data/token.json.example"
           install -m 644 README.md "dist/${PACKAGE_NAME}/README.md"
@@ -46,8 +56,9 @@ jobs:
       - name: Validate artifacts
         run: |
           set -euo pipefail
-          test -f "target/${TARGET}/release/${APP_NAME}"
-          file "target/${TARGET}/release/${APP_NAME}"
+          test -f "target/release/${APP_NAME}"
+          file "target/release/${APP_NAME}" | tee /tmp/freebsd-file.txt
+          grep -q "FreeBSD" /tmp/freebsd-file.txt
           tar -tzf "dist/${PACKAGE_NAME}.tar.gz" > /dev/null
 
       - name: Upload artifact
