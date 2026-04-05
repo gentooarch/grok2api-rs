@@ -1,0 +1,60 @@
+name: freebsd-amd64-build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-freebsd-amd64:
+    runs-on: ubuntu-latest
+    env:
+      APP_NAME: grok2api-rs
+      TARGET: x86_64-unknown-freebsd
+      PACKAGE_NAME: grok2api-rs-freebsd-amd64
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          repository: XeanYu/grok2api-rs
+          ref: main
+          fetch-depth: 1
+
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: build
+          target: ${{ env.TARGET }}
+          args: "--locked --release"
+
+      - name: Prepare package
+        run: |
+          set -euo pipefail
+          mkdir -p "dist/${PACKAGE_NAME}/data"
+          install -m 755 "target/${TARGET}/release/${APP_NAME}" "dist/${PACKAGE_NAME}/${APP_NAME}"
+          install -m 644 config.defaults.toml "dist/${PACKAGE_NAME}/config.defaults.toml"
+          install -m 644 data/token.json.example "dist/${PACKAGE_NAME}/data/token.json.example"
+          install -m 644 README.md "dist/${PACKAGE_NAME}/README.md"
+
+      - name: Create archive
+        run: |
+          set -euo pipefail
+          tar -C dist -czf "dist/${PACKAGE_NAME}.tar.gz" "${PACKAGE_NAME}"
+          sha256sum "dist/${PACKAGE_NAME}.tar.gz" > "dist/${PACKAGE_NAME}.tar.gz.sha256"
+
+      - name: Validate artifacts
+        run: |
+          set -euo pipefail
+          test -f "target/${TARGET}/release/${APP_NAME}"
+          file "target/${TARGET}/release/${APP_NAME}"
+          tar -tzf "dist/${PACKAGE_NAME}.tar.gz" > /dev/null
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACKAGE_NAME }}
+          if-no-files-found: error
+          path: |
+            dist/${{ env.PACKAGE_NAME }}.tar.gz
+            dist/${{ env.PACKAGE_NAME }}.tar.gz.sha256
