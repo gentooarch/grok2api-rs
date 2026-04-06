@@ -81,6 +81,12 @@ impl ModelService {
                 m.cost = Cost::High;
                 m
             },
+            ModelInfo::new(
+                "grok-4.20-beta",
+                "grok-4.20-beta",
+                "MODEL_MODE_AUTO",
+                "Grok 4.20 Beta",
+            ),
             {
                 let mut m = ModelInfo::new(
                     "grok-imagine-1.0",
