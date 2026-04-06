@@ -13,11 +13,9 @@ jobs:
       APP_NAME: grok2api-rs
       PACKAGE_NAME: grok2api-rs-freebsd-amd64
     steps:
-      - name: Checkout source repository
+      - name: Checkout current repository
         uses: actions/checkout@v4
         with:
-          repository: XeanYu/grok2api-rs
-          ref: main
           fetch-depth: 1
 
       - name: Build binary in FreeBSD VM
