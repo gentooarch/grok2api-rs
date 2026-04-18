@@ -85,6 +85,7 @@ impl ModelService {
                 "grok-4.20-beta",
                 "grok-4.20-beta",
                 "MODEL_MODE_AUTO",
+                "grok-4.20-0309-reasoning,
                 "Grok 4.20 Beta",
             ),
             {
