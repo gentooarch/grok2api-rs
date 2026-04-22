@@ -85,7 +85,11 @@ impl ModelService {
                 "grok-4.20-beta",
                 "grok-4.20-beta",
                 "MODEL_MODE_AUTO",
-                "grok-4.20-0309-reasoning,
+                "grok-4.20-reasoning",
+                "grok-4.20-non-reasoning",
+                "grok-4.20-0309-reasoning",
+                "grok-4.20-0309-non-reasoning",
+                "grok-4.20-multi-agent-0309",
                 "Grok 4.20 Beta",
             ),
             {
